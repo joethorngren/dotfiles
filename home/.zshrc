@@ -1,5 +1,13 @@
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
 # Cross-platform Zsh config for macOS + WSL/Linux
 # Keep machine-specific overrides in ~/.zshrc.local (not committed)
+
+# Skip the p10k configuration wizard — we ship our own .p10k.zsh
+POWERLEVEL9K_DISABLE_CONFIGURATION_WIZARD=true
 
 setopt prompt_subst
 
