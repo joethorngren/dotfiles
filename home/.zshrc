@@ -78,30 +78,70 @@ command -v eza >/dev/null 2>&1 && alias ls='eza --group-directories-first'
 command -v bat >/dev/null 2>&1 && alias cat='bat --paging=never'
 command -v rg >/dev/null 2>&1 && alias grep='rg'
 
-# Suppress "update available" nags from CLI tools that self-update.
-# These tools check their registry on every invocation and nag even
-# after you've already updated. Disable the check — update explicitly
-# with `upgrade-all` instead.
-export CLAUDE_DISABLE_UPDATE_CHECK=1
-export CODEX_DISABLE_UPDATE_CHECK=1
+# Bleeding edge — auto-update everything, suppress nags between updates.
+# Claude Code: settings-level auto-update + env var to kill the per-run check
+export CLAUDE_AUTO_UPDATE=1
+export CLAUDE_NO_UPDATE_CHECK=1
+# Codex CLI: disable the startup version check
+export CODEX_QUIET_UPGRADE=1
+export UPDATE_NOTIFIER_DISABLE=1  # Generic npm update-notifier suppression
 
-# Unified upgrade command — one alias to rule them all
+# Unified upgrade command — one command to rule them all
 upgrade-all() {
-  echo "── Homebrew ──"
-  brew update && brew upgrade && brew cleanup
+  echo "══════════════════════════════════════"
+  echo "  Bleeding Edge Upgrade — $(date +%Y-%m-%d)"
+  echo "══════════════════════════════════════"
   echo ""
+
+  echo "── Homebrew (formulae + casks) ──"
+  brew update && brew upgrade && brew upgrade --cask --greedy && brew cleanup
+  echo ""
+
   echo "── Claude Code ──"
   if command -v claude >/dev/null 2>&1; then
-    claude update 2>/dev/null || npm update -g @anthropic-ai/claude-code 2>/dev/null || echo "manual update needed"
+    claude update --yes 2>/dev/null \
+      || npm install -g @anthropic-ai/claude-code@latest 2>/dev/null \
+      || echo "  try: npm install -g @anthropic-ai/claude-code@latest"
+    claude --version 2>/dev/null
   fi
   echo ""
+
   echo "── Codex CLI ──"
   if command -v codex >/dev/null 2>&1; then
-    brew upgrade --cask codex 2>/dev/null || echo "already latest"
+    brew upgrade --cask codex 2>/dev/null \
+      || npm install -g @openai/codex@latest 2>/dev/null \
+      || echo "  already latest or manual update needed"
+    codex --version 2>/dev/null
   fi
   echo ""
+
+  echo "── Gemini CLI ──"
+  if command -v gemini >/dev/null 2>&1; then
+    npm install -g @anthropic-ai/gemini-cli@latest 2>/dev/null \
+      || npm install -g @anthropic-ai/gemini@latest 2>/dev/null \
+      || echo "  check: npm list -g | grep gemini"
+    gemini --version 2>/dev/null
+  fi
+  echo ""
+
   echo "── npm globals ──"
   npm update -g 2>/dev/null || true
   echo ""
-  echo "── Done ──"
+
+  echo "── Rust ──"
+  if command -v rustup >/dev/null 2>&1; then
+    rustup update 2>/dev/null
+  fi
+  echo ""
+
+  echo "── fnm / Node.js ──"
+  if command -v fnm >/dev/null 2>&1; then
+    fnm install --lts 2>/dev/null && fnm default lts-latest 2>/dev/null
+    node --version 2>/dev/null
+  fi
+  echo ""
+
+  echo "══════════════════════════════════════"
+  echo "  All tools updated. Restart terminal."
+  echo "══════════════════════════════════════"
 }
