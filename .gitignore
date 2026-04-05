@@ -1,0 +1,8 @@
+# Local-only override files
+*.local
+
+# Secret files
+**/.secrets.env
+
+# Temp/OS
+.DS_Store

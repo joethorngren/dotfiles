@@ -1,0 +1,25 @@
+{
+  "$help": "Copy snippets into your Windows Terminal settings.json",
+  "profiles": {
+    "defaults": {
+      "font": {
+        "face": "JetBrainsMono Nerd Font",
+        "size": 12
+      },
+      "opacity": 92,
+      "useAcrylic": true,
+      "antialiasingMode": "grayscale",
+      "cursorShape": "bar",
+      "padding": "8"
+    },
+    "list": [
+      {
+        "name": "Ubuntu (WSL) - Dotfiles",
+        "source": "Windows.Terminal.Wsl",
+        "commandline": "wsl.exe -d Ubuntu",
+        "startingDirectory": "//wsl$/Ubuntu/home/$USER",
+        "colorScheme": "Campbell"
+      }
+    ]
+  }
+}

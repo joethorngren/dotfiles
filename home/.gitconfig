@@ -1,0 +1,23 @@
+[init]
+	defaultBranch = main
+
+[user]
+	name = oh_Henry
+	email = oh_henry@LightHouse-Raptor.local
+
+[pull]
+	rebase = false
+
+[core]
+	excludesfile = ~/.config/git/ignore
+
+[delta]
+	navigate = true
+	line-numbers = true
+
+[interactive]
+	diffFilter = delta --color-only
+
+# Optional per-machine overrides (identity/work settings)
+[includeIf "gitdir:~/work/"]
+	path = ~/.gitconfig-work
