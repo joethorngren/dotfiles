@@ -77,3 +77,31 @@ fi
 command -v eza >/dev/null 2>&1 && alias ls='eza --group-directories-first'
 command -v bat >/dev/null 2>&1 && alias cat='bat --paging=never'
 command -v rg >/dev/null 2>&1 && alias grep='rg'
+
+# Suppress "update available" nags from CLI tools that self-update.
+# These tools check their registry on every invocation and nag even
+# after you've already updated. Disable the check — update explicitly
+# with `upgrade-all` instead.
+export CLAUDE_DISABLE_UPDATE_CHECK=1
+export CODEX_DISABLE_UPDATE_CHECK=1
+
+# Unified upgrade command — one alias to rule them all
+upgrade-all() {
+  echo "── Homebrew ──"
+  brew update && brew upgrade && brew cleanup
+  echo ""
+  echo "── Claude Code ──"
+  if command -v claude >/dev/null 2>&1; then
+    claude update 2>/dev/null || npm update -g @anthropic-ai/claude-code 2>/dev/null || echo "manual update needed"
+  fi
+  echo ""
+  echo "── Codex CLI ──"
+  if command -v codex >/dev/null 2>&1; then
+    brew upgrade --cask codex 2>/dev/null || echo "already latest"
+  fi
+  echo ""
+  echo "── npm globals ──"
+  npm update -g 2>/dev/null || true
+  echo ""
+  echo "── Done ──"
+}
