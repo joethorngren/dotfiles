@@ -292,11 +292,30 @@ else
   fi
 fi
 
-# GitHub Copilot CLI (useful for everyone)
-if command -v github-copilot-cli >/dev/null 2>&1; then
-  skip "GitHub Copilot CLI"
+# Codex CLI (OpenAI)
+if command -v codex >/dev/null 2>&1; then
+  skip "Codex CLI $(codex --version 2>/dev/null || echo '')"
 else
-  info "GitHub Copilot CLI — install via VS Code extension"
+  if [[ "$PROFILE_NAME" == "personal" || "$PROFILE_NAME" == "rfs" ]]; then
+    install "Installing Codex CLI..."
+    npm install -g @openai/codex 2>/dev/null || info "npm not in PATH yet — install after shell restart"
+    ok "Codex CLI"
+  else
+    info "Skipping Codex CLI ($PROFILE_NAME profile)"
+  fi
+fi
+
+# Gemini CLI (Google)
+if command -v gemini >/dev/null 2>&1; then
+  skip "Gemini CLI $(gemini --version 2>/dev/null || echo '')"
+else
+  if [[ "$PROFILE_NAME" == "personal" || "$PROFILE_NAME" == "rfs" ]]; then
+    install "Installing Gemini CLI..."
+    npm install -g @google/gemini-cli 2>/dev/null || info "npm not in PATH yet — install after shell restart"
+    ok "Gemini CLI"
+  else
+    info "Skipping Gemini CLI ($PROFILE_NAME profile)"
+  fi
 fi
 
 # ─── 12. macOS Defaults ─────────────────────────────────────────
