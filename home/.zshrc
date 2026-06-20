@@ -13,7 +13,11 @@ setopt prompt_subst
 
 export ZSH="$HOME/.oh-my-zsh"
 ZSH_THEME="powerlevel10k/powerlevel10k"
-plugins=(git)
+plugins=(
+  git
+  zsh-autosuggestions
+  zsh-syntax-highlighting
+)
 
 # Platform detection
 case "$(uname -s)" in
@@ -117,8 +121,7 @@ upgrade-all() {
 
   echo "── Gemini CLI ──"
   if command -v gemini >/dev/null 2>&1; then
-    npm install -g @anthropic-ai/gemini-cli@latest 2>/dev/null \
-      || npm install -g @anthropic-ai/gemini@latest 2>/dev/null \
+    npm install -g @google/gemini-cli@latest 2>/dev/null \
       || echo "  check: npm list -g | grep gemini"
     gemini --version 2>/dev/null
   fi

@@ -13,7 +13,7 @@ echo "  ─────────────────────"
 
 TOOLS=(
   zsh git tmux fzf rg fd bat eza zoxide delta jq direnv gh yq
-  neovim starship atuin htop wget curl node python3 fnm pipx
+  neovim starship atuin htop wget curl node python3 fnm pipx codex
 )
 
 PASS=0
@@ -33,7 +33,7 @@ done
 # Optional tools (don't count as failures)
 echo ""
 echo "  Optional:"
-for t in rustc claude docker; do
+for t in rustc claude gemini docker tailscale; do
   if command -v "$t" >/dev/null 2>&1; then
     VER="$($t --version 2>/dev/null | head -1 || echo '')"
     printf "  ${GREEN}✓${RESET} %-12s ${DIM}%s${RESET}\n" "$t" "$VER"

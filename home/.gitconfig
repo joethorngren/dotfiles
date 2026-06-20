@@ -18,6 +18,14 @@
 [interactive]
 	diffFilter = delta --color-only
 
+[credential "https://github.com"]
+	helper =
+	helper = "!f() { gh auth git-credential \"$@\"; }; f"
+
+[credential "https://gist.github.com"]
+	helper =
+	helper = "!f() { gh auth git-credential \"$@\"; }; f"
+
 # Optional per-machine overrides (identity/work settings)
 [includeIf "gitdir:~/work/"]
 	path = ~/.gitconfig-work

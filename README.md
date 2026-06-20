@@ -8,12 +8,19 @@ Portable shell setup that keeps one source of truth for your terminal UX across:
 - `home/.zshrc`, `home/.zprofile`, `home/.zshenv`
 - `home/.gitconfig`, `home/.tmux.conf`, `home/.config/git/ignore`
 - `iterm2/DynamicProfiles/dotfiles-profile.json`
+- `Brewfile` for currently installed top-level Homebrew formulae/casks
 - WSL-friendly bootstrap and Windows Terminal settings snippet
 
 ## Install on macOS
 ```bash
 cd ~/dotfiles
 bash scripts/bootstrap-macos.sh
+```
+
+## Restore Homebrew state only
+This mirrors the top-level formulae/casks currently installed on the Mac.
+```bash
+brew bundle --file Brewfile
 ```
 
 ## Install on WSL
@@ -47,6 +54,9 @@ Use these for machine-specific values:
 - `~/.zprofile.local`
 - `~/.gitconfig-work`
 - `~/.secrets.env`
+
+The committed Git config uses GitHub CLI as the credential helper for GitHub and
+Gist. Run `gh auth login` after linking dotfiles on a fresh machine.
 
 ## Tooling research
 See:
