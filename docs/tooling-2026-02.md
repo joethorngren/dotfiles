@@ -1,4 +1,4 @@
-# Terminal Tooling Shortlist (as of February 13, 2026)
+# Terminal Tooling Shortlist (refreshed June 20, 2026)
 
 This list focuses on tools that improve shell UX on both macOS and WSL.
 
@@ -18,13 +18,21 @@ This list focuses on tools that improve shell UX on both macOS and WSL.
 - `git-delta`: improved git diffs.
   Source: https://github.com/dandavison/delta
 
+## Current workstation additions
+- `uv`: fast Python package/project manager; now installed and used for
+  `notebooklm-mcp-cli`.
+  Source: https://docs.astral.sh/uv/
+- `opencode`, `claude`, `codex`, and `gemini`: terminal AI coding tools.
+- `firebase`, `gcloud`, `vercel`, `eas`, and `clerk`: app/platform CLIs used
+  by the current Mac setup.
+- `android-commandlinetools`, `android-platform-tools`, `android-studio`,
+  `openjdk@17`, and `maestro`: Android/mobile automation setup.
+- `ghostty`, `iterm2`, `aerospace`, `moom`, `keyboard-maestro`, and
+  `tailscale`: terminal, windowing, automation, and network workflow.
+
 ## Worth adding next
-- `atuin`: encrypted shell history sync and better history search.
-  Source: https://atuin.sh/
 - `mise`: polyglot runtime/version manager (Node, Python, etc.).
   Source: https://mise.jdx.dev/
-- `uv`: very fast Python package/project manager.
-  Source: https://docs.astral.sh/uv/
 - `zellij`: modern terminal multiplexer (alternative to tmux).
   Source: https://zellij.dev/
 - `yazi`: fast terminal file manager.
@@ -39,6 +47,6 @@ This list focuses on tools that improve shell UX on both macOS and WSL.
 ## Recommendation for your setup
 1. Keep your current zsh + powerlevel10k workflow for continuity.
 2. Standardize on `zoxide`, `fzf`, `eza`, `bat`, `fd`, `rg`, and `delta` everywhere.
-3. Add `atuin` if you want synced history across Mac + WSL.
+3. Keep `uv` as the default Python package runner for this workstation.
 4. Add `mise` if you want one runtime manager across both environments.
-5. Add `uv` for Python-heavy work.
+5. Revisit `atuin` only if synced shell history becomes a real need.

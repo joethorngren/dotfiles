@@ -4,6 +4,7 @@
 # Editors
 .vscode/
 .idea/
+**/.claude/settings.local.json
 
 # Python
 __pycache__/
@@ -14,4 +15,6 @@ node_modules/
 
 # Local env
 .env
+.env.local
+.env.*.local
 .secrets.env

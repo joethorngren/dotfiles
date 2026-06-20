@@ -5,6 +5,7 @@
 set -euo pipefail
 
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+BREWFILE="$DOTFILES_DIR/macos/Brewfile"
 PROFILE="${1:---profile}"
 PROFILE_NAME="${2:-personal}"
 
@@ -83,65 +84,82 @@ install "Updating Homebrew..."
 brew update --quiet
 ok "Homebrew up to date"
 
-# ─── 2. CLI Tools ────────────────────────────────────────────────
-step "CLI Tools"
+# ─── 2. Rust Prerequisite ────────────────────────────────────────
+step "Rust"
 
-BREW_FORMULAS=(
-  git
-  zsh
-  tmux
-  fzf
-  ripgrep
-  fd
-  bat
-  eza
-  zoxide
-  jq
-  yq
-  neovim
-  gh
-  git-delta
-  atuin
-  starship
-  direnv
-  htop
-  tree
-  wget
-  curl
-)
-
-for formula in "${BREW_FORMULAS[@]}"; do
-  if brew list "$formula" &>/dev/null; then
-    skip "$formula"
-  else
-    install "Installing $formula..."
-    brew install --quiet "$formula"
-    ok "$formula"
-  fi
-done
-
-# ─── 3. Cask Apps ────────────────────────────────────────────────
-step "Desktop Apps"
-
-BREW_CASKS=(
-  iterm2
-  font-jetbrains-mono-nerd-font
-)
-
-# Profile-specific casks
-if [[ "$PROFILE_NAME" == "personal" || "$PROFILE_NAME" == "rfs" ]]; then
-  BREW_CASKS+=(visual-studio-code)
+if command -v rustc >/dev/null 2>&1; then
+  skip "Rust $(rustc --version | awk '{print $2}')"
+else
+  install "Installing Rust via rustup..."
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
+  ok "Rust installed"
 fi
 
-for cask in "${BREW_CASKS[@]}"; do
-  if brew list --cask "$cask" &>/dev/null; then
-    skip "$cask"
-  else
-    install "Installing $cask..."
-    brew install --cask --quiet "$cask" || fail "$cask (may need manual install)"
-    ok "$cask"
+[ -f "$HOME/.cargo/env" ] && source "$HOME/.cargo/env"
+
+# ─── 3. macOS Bundle ─────────────────────────────────────────────
+step "macOS Bundle"
+
+if [ ! -f "$BREWFILE" ]; then
+  fail "Missing Brewfile at $BREWFILE"
+fi
+
+for tap in hudochenkov/sshpass itchyny/tap nikitabobko/tap steipete/tap stripe/stripe-cli yakitrak/yakitrak; do
+  brew tap "$tap" >/dev/null 2>&1 || true
+done
+
+brew trust hudochenkov/sshpass itchyny/tap nikitabobko/tap steipete/tap stripe/stripe-cli yakitrak/yakitrak >/dev/null 2>&1 ||
+  info "Some third-party Homebrew taps may need manual trust before install/upgrade checks"
+
+ADOPTABLE_CASKS=(
+  caldigit-docking-utility
+  claude
+  discord
+  google-chrome
+  google-chrome@beta
+  ollama-app
+  prusaslicer
+  shottr
+  signal
+  slack
+  telegram
+  vysor
+)
+
+app_exists_for_cask() {
+  case "$1" in
+    caldigit-docking-utility)
+      [ -d "/Applications/CalDigit Docking Station Utility" ] ||
+        [ -d "/Applications/CalDigit Docking Station Utility/CalDigit_Docking_Station_Utility.app" ]
+      ;;
+    claude) [ -d "/Applications/Claude.app" ] ;;
+    discord) [ -d "/Applications/Discord.app" ] ;;
+    google-chrome) [ -d "/Applications/Google Chrome.app" ] ;;
+    google-chrome@beta) [ -d "/Applications/Google Chrome Beta.app" ] ;;
+    ollama-app) [ -d "/Applications/Ollama.app" ] || command -v ollama >/dev/null 2>&1 ;;
+    prusaslicer)
+      [ -d "/Applications/PrusaSlicer.app" ] ||
+        [ -d "/Applications/Original Prusa Drivers/PrusaSlicer.app" ]
+      ;;
+    shottr) [ -d "/Applications/Shottr.app" ] ;;
+    signal) [ -d "/Applications/Signal.app" ] ;;
+    slack) [ -d "/Applications/Slack.app" ] ;;
+    telegram) [ -d "/Applications/Telegram.app" ] || [ -d "/Applications/Telegram for macOS.app" ] ;;
+    vysor) [ -d "/Applications/Vysor.app" ] ;;
+    *) return 1 ;;
+  esac
+}
+
+for cask in "${ADOPTABLE_CASKS[@]}"; do
+  if ! brew list --cask "$cask" >/dev/null 2>&1 && app_exists_for_cask "$cask"; then
+    install "Adopting existing $cask app into Homebrew..."
+    brew install --cask --adopt "$cask" || info "$cask could not be adopted; brew bundle may require a manual reinstall"
   fi
 done
+
+install "Installing Homebrew, cask, npm, cargo, uv, and VS Code entries..."
+brew bundle --file "$BREWFILE"
+ok "macOS bundle applied"
 
 # ─── 4. fzf Key Bindings ────────────────────────────────────────
 step "fzf Integration"
@@ -218,105 +236,29 @@ else
   skip "No iTerm2 profile found in dotfiles"
 fi
 
-# ─── 8. Node.js (via fnm) ───────────────────────────────────────
-step "Node.js"
+# ─── 8. Runtime Sanity ───────────────────────────────────────────
+step "Bun"
 
-if command -v fnm >/dev/null 2>&1; then
-  skip "fnm (Fast Node Manager)"
+if command -v bun >/dev/null 2>&1; then
+  skip "Bun $(bun --version)"
 else
-  install "Installing fnm..."
-  brew install --quiet fnm
-  ok "fnm installed"
+  install "Installing Bun..."
+  curl -fsSL https://bun.sh/install | bash
+  ok "Bun installed"
 fi
 
-# Ensure fnm is available in this session
-eval "$(fnm env --shell bash 2>/dev/null)" || true
+# ─── 9. Runtime Sanity ───────────────────────────────────────────
+step "Runtime Sanity"
 
-if command -v node >/dev/null 2>&1; then
-  skip "Node.js $(node --version)"
-else
-  install "Installing Node.js LTS..."
-  fnm install --lts
-  fnm default lts-latest
-  ok "Node.js $(fnm current) installed"
-fi
-
-# ─── 9. Python ───────────────────────────────────────────────────
-step "Python"
-
-if command -v python3 >/dev/null 2>&1; then
-  skip "Python $(python3 --version | awk '{print $2}')"
-else
-  install "Installing Python 3..."
-  brew install --quiet python
-  ok "Python installed"
-fi
-
-if command -v pipx >/dev/null 2>&1; then
-  skip "pipx"
-else
-  install "Installing pipx..."
-  brew install --quiet pipx
-  pipx ensurepath 2>/dev/null || true
-  ok "pipx installed"
-fi
-
-# ─── 10. Rust (for Word Freak engine) ────────────────────────────
-step "Rust"
-
-if command -v rustc >/dev/null 2>&1; then
-  skip "Rust $(rustc --version | awk '{print $2}')"
-else
-  if [[ "$PROFILE_NAME" == "personal" || "$PROFILE_NAME" == "rfs" ]]; then
-    install "Installing Rust via rustup..."
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
-    ok "Rust installed"
+for tool in node npm python3 uv cargo; do
+  if command -v "$tool" >/dev/null 2>&1; then
+    skip "$tool"
   else
-    info "Skipping Rust (not needed for $PROFILE_NAME profile)"
+    info "$tool not found after bundle; check Homebrew output above"
   fi
-fi
+done
 
-# ─── 11. AI Coding Tools ────────────────────────────────────────
-step "AI Coding Tools"
-
-# Claude Code
-if command -v claude >/dev/null 2>&1; then
-  skip "Claude Code $(claude --version 2>/dev/null || echo '')"
-else
-  if [[ "$PROFILE_NAME" == "personal" || "$PROFILE_NAME" == "rfs" ]]; then
-    install "Installing Claude Code..."
-    npm install -g @anthropic-ai/claude-code 2>/dev/null || info "npm not in PATH yet — install after shell restart"
-    ok "Claude Code"
-  else
-    info "Skipping Claude Code ($PROFILE_NAME profile)"
-  fi
-fi
-
-# Codex CLI (OpenAI)
-if command -v codex >/dev/null 2>&1; then
-  skip "Codex CLI $(codex --version 2>/dev/null || echo '')"
-else
-  if [[ "$PROFILE_NAME" == "personal" || "$PROFILE_NAME" == "rfs" ]]; then
-    install "Installing Codex CLI..."
-    npm install -g @openai/codex 2>/dev/null || info "npm not in PATH yet — install after shell restart"
-    ok "Codex CLI"
-  else
-    info "Skipping Codex CLI ($PROFILE_NAME profile)"
-  fi
-fi
-
-# Gemini CLI (Google)
-if command -v gemini >/dev/null 2>&1; then
-  skip "Gemini CLI $(gemini --version 2>/dev/null || echo '')"
-else
-  if [[ "$PROFILE_NAME" == "personal" || "$PROFILE_NAME" == "rfs" ]]; then
-    install "Installing Gemini CLI..."
-    npm install -g @google/gemini-cli 2>/dev/null || info "npm not in PATH yet — install after shell restart"
-    ok "Gemini CLI"
-  else
-    info "Skipping Gemini CLI ($PROFILE_NAME profile)"
-  fi
-fi
+info "npm, cargo, uv, and VS Code globals are managed in macos/Brewfile"
 
 # ─── 12. macOS Defaults ─────────────────────────────────────────
 step "macOS Preferences"

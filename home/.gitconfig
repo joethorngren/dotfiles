@@ -3,7 +3,7 @@
 
 [user]
 	name = oh_Henry
-	email = oh_henry@LightHouse-Raptor.local
+	email = joethorngren@gmail.com
 
 [pull]
 	rebase = false
@@ -25,6 +25,10 @@
 [credential "https://gist.github.com"]
 	helper =
 	helper = "!f() { gh auth git-credential \"$@\"; }; f"
+
+# Optional per-machine overrides (identity/work settings)
+[include]
+	path = ~/.gitconfig-local
 
 # Optional per-machine overrides (identity/work settings)
 [includeIf "gitdir:~/work/"]

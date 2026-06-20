@@ -36,6 +36,8 @@ export DOTFILES_PLATFORM
 # Paths
 export PATH="$HOME/.local/bin:$PATH"
 export PATH="$HOME/scripts:$PATH"
+[ -d "$HOME/.maestro/bin" ] && export PATH="$PATH:$HOME/.maestro/bin"
+[ -d "$HOME/Code_Complete/utils/scripts" ] && export PATH="$PATH:$HOME/Code_Complete/utils/scripts"
 
 # Homebrew paths (Apple Silicon first)
 [ -d "/opt/homebrew/bin" ] && export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
@@ -46,7 +48,11 @@ export BUN_INSTALL="$HOME/.bun"
 [ -d "$BUN_INSTALL/bin" ] && export PATH="$BUN_INSTALL/bin:$PATH"
 
 # Java (optional per-host)
-[ -n "$JAVA_HOME" ] && export PATH="$JAVA_HOME/bin:$PATH"
+if [ -z "${JAVA_HOME:-}" ] && command -v brew >/dev/null 2>&1; then
+  JAVA17_HOME="$(brew --prefix openjdk@17 2>/dev/null)/libexec/openjdk.jdk/Contents/Home"
+  [ -d "$JAVA17_HOME" ] && export JAVA_HOME="$JAVA17_HOME"
+fi
+[ -n "${JAVA_HOME:-}" ] && export PATH="$JAVA_HOME/bin:$PATH"
 
 # oh-my-zsh
 if [ -f "$ZSH/oh-my-zsh.sh" ]; then
@@ -78,9 +84,20 @@ fi
 [ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"
 
 # Better defaults when modern tools exist
-command -v eza >/dev/null 2>&1 && alias ls='eza --group-directories-first'
+if command -v eza >/dev/null 2>&1; then
+  alias ls='eza --group-directories-first --icons'
+  alias ll='eza -la --icons --git'
+  alias lt='eza --tree --level=2 --icons'
+fi
 command -v bat >/dev/null 2>&1 && alias cat='bat --paging=never'
 command -v rg >/dev/null 2>&1 && alias grep='rg'
+[ -x "$HOME/bin/gam7/gam" ] && alias gam="$HOME/bin/gam7/gam"
+
+# Drop-in configs for machine-specific shell snippets.
+for f in "$HOME"/.zsh.d/*.zsh(N); do source "$f"; done
+
+# Some mobile/AI dev tools are file-handle hungry.
+ulimit -n 65536 2>/dev/null || true
 
 # Bleeding edge — auto-update everything, suppress nags between updates.
 # Claude Code: settings-level auto-update + env var to kill the per-run check
